@@ -1,0 +1,60 @@
+body {
+  background-color: white;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.sidenav {
+  height: 100%;
+  background-color: black;
+  overflow: hidden;
+  padding-top: 20px;
+  position: relative;
+}
+
+.game-main-text{
+  margin-top: 20%;
+  color: #fff;
+  position: relative;
+}
+.game-main-text h2{
+  font-weight: 300;
+}
+/*////*/
+.main {
+  padding: 0px 10px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+}
+@media screen and (max-width: 450px) {
+  .player-form{
+      margin-top: 10%;
+  }
+}
+@media screen and (min-width: 768px){
+  .main{
+      margin-left: 40%; 
+  }
+
+  .sidenav{
+      width: 40%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+  }
+
+  .player-form{
+      margin-top: 80%;
+  }
+
+}
+.btn-black{
+  background-color: #000 !important;
+  color: #fff;
+}
