@@ -19,8 +19,15 @@ app.set('port', port);
  * Create HTTP server.
  */
 
+const { Server } = require('socket.io');
 var server = http.createServer(app);
+const io = new Server(server);
 
+io.on('connection', socket=>{
+  socket.on('roomId', msg=>{
+    console.log('Room Id: '+ msg);
+  });
+});
 /**
  * Listen on provided port, on all network interfaces.
  */

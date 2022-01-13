@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=0"/>
+        <meta charset="utf-8">
+        <title>Noob Game</title>
+        <link rel="stylesheet" href="/stylesheets/game-screen.css" type="text/css">
+    </head>
+    <body>
+        <div style="z-index: 0; height: 100%;">
+            <div id="mainDiv" style="height: 85%;">
+                <canvas id="mainLayer"></canvas>
+            </div>
+            <div style="width: 100%; height: 15%;  padding: 5px 0px 5px 0px;">     
+                <table style="height: 100%; width: 100%;">
+                    <tr>
+                        <td rowspan="2" style="text-align: center;">
+                            <button class="directBtn" id="moveLeft">
+                                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                            </button>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="directBtn" id="moveUp">
+                                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                            </button>
+                        </td>
+                        <td rowspan="2" style="text-align: center;">
+                            <button class="shotBtn" id="attack" onclick="shoot()">
+                                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                            </button>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="directBtn" id="moveUp1">
+                                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                            </button>
+                        </td>
+                        <td rowspan="2" style="text-align: center;">
+                            <button class="directBtn" id="moveRight">
+                                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            <button class="directBtn" id="moveDown">
+                                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                            </button>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="directBtn" id="moveDown1">
+                                <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="drawingArea" style="z-index: 1; display: block;">
+            <canvas id="paintLayer" style="display: block;"></canvas>
+            <canvas id="picFrame" style="display: block;"></canvas>
+        </div>
+        <button id="paintDone" onclick="paintDone()" style="z-index: 2;">DONE</button>
+        
+        <script src="GameScreen.js" type="text/javascript"></script>
+    </body>
+</html>

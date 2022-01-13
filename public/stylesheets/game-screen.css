@@ -1,0 +1,66 @@
+html, body {
+    background: black;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    color: white;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    touch-action: manipulation;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+table, tr{
+    white-space: nowrap;
+    border-collapse: collapse;
+    border-spacing: 0px;
+}
+
+.directBtn{
+    height: 95%; 
+    width: 95%;
+    border: none;
+    border-radius: 8%;
+}
+
+.shotBtn{
+    height: 80%; 
+    width: 80%;
+    border: none;
+    border-radius: 8%;
+    padding: 10px 5px 10px 5px;
+    background: url('/images/shooting-star.png') no-repeat, #336b87;
+    background-size: contain; 
+    background-position: center;
+    background-origin: content-box;
+}
+
+#moveLeft{
+    padding: 15px 0 15px 0;
+    background: url('/images/triangleleft.png') no-repeat, #2a3132;
+    background-size: contain; 
+    background-position: center;
+    background-origin: content-box;
+}
+#moveRight{
+    padding: 15px 0 15px 0;
+    background: url('/images/triangleright.png') no-repeat, #2a3132;
+    background-size: contain; 
+    background-position: center;
+    background-origin: content-box;
+}
+#moveUp, #moveUp1{
+    background: url('/images/triangleup.png') no-repeat, #2a3132; 
+    background-size: contain; 
+    background-position: center;
+    background-origin: content-box;
+}
+#moveDown, #moveDown1{
+    background: url('/images/triangledown.png') no-repeat, #2a3132;
+    background-size: contain; 
+    background-position: center;
+    background-origin: content-box;
+}
