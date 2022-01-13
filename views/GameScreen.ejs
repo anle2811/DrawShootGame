@@ -25,7 +25,7 @@
                             </button>
                         </td>
                         <td rowspan="2" style="text-align: center;">
-                            <button class="shotBtn" id="attack" onclick="shoot()">
+                            <button class="shotBtn" id="attack">
                                 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
                             </button>
                         </td>
@@ -59,8 +59,9 @@
             <canvas id="paintLayer" style="display: block;"></canvas>
             <canvas id="picFrame" style="display: block;"></canvas>
         </div>
-        <button id="paintDone" onclick="paintDone()" style="z-index: 2;">DONE</button>
+        <button id="paintDone" style="z-index: 2;">DONE</button>
         
-        <script src="GameScreen.js" type="text/javascript"></script>
+        <script type="module" src="/javascripts/models/GamePlay.js"></script>
+        <script type="module" src="/javascripts/handlers/GameScreen.js"></script>
     </body>
 </html>

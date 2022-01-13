@@ -75,17 +75,18 @@ class Line{
 }
 
 class Bullet{
-    constructor(x, y, velocityX, velocityY, speed){
+    constructor(x, y, velocityX, velocityY, speed, ctx){
         this.x = x;
         this.y = y;
         this.velocityX = velocityX;
         this.velocityY = velocityY;
         this.speed = speed;
+        this.ctx = ctx;
     }
 
     draw(){
-        context.fillStyle = 'pink';
-        context.fillRect(this.x, this.y, 10, 10);
+        this.ctx.fillStyle = 'pink';
+        this.ctx.fillRect(this.x, this.y, 10, 10);
     }
     
     update(){
@@ -96,22 +97,23 @@ class Bullet{
 }
 
 class Tank{
-    constructor(x, y, size, speed){
+    constructor(x, y, size, color, ctx){
         this.x = x;
         this.y = y;
         this.size = size;
-        this.speed = speed;
+        this.color = color;
         this.bulletArr = [];
+        this.ctx = ctx;
     }
     draw(){
-        context.fillStyle = this.color;
-        context.fillRect(this.x, this.y, this.size, this.size);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(this.x, this.y, this.size, this.size);
     }
     shoot(x, y){
         const angle = Math.atan2(y - this.y, x - this.x);
         const bx = Math.cos(angle);
         const by = Math.sin(angle);
-        this.bulletArr.push(new Bullet(this.x + 20, this.y, bx, by, BULLET_SPEED));
+        this.bulletArr.push(new Bullet(this.x + 20, this.y, bx, by, BULLET_SPEED, this.ctx));
     }
 }
 
@@ -123,8 +125,4 @@ class Player{
     }
 }
 
-module.exports.Line;
-module.exports.Player;
-module.exports.Tank;
-
-module.exports.PEN_PIXEL_SIZE = PEN_PIXEL_SIZE;
+export { Line, Player, Tank, PEN_PIXEL_SIZE };
