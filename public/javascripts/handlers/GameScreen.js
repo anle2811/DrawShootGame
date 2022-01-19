@@ -1,4 +1,19 @@
+
 import { Line, Player, Tank, PEN_PIXEL_SIZE } from '../models/GamePlay.js';
+const socket = io();
+let playerNum = 0;
+let roomId = '';
+let myName = 'NULL';
+console.log('HEHE: '+ initInfo.action);
+if(initInfo.action === 'newRoom'){
+    console.log('NEW ROOM');
+    socket.emit('newRoom', initInfo.nickName);
+}else{
+    if(initInfo.action === 'joinRoom'){
+        console.log('JOIN ROOM: ');
+        socket.emit('joinRoom', {nickName: initInfo.nickName, roomInfo: initInfo.roomInfo});
+    }
+}
 
 const canvas = document.getElementById('mainLayer');
 const context = canvas.getContext('2d');
@@ -32,12 +47,29 @@ doneBtn.style.top = (window.innerHeight/4 + paintLayer.height + paintLayer.heigh
 doneBtn.style.position = 'absolute';
 
 const players = {
-    mySelf: new Player('Anlele', new Tank(canvas.width/2 - 25, canvas.height - 50, 50, 'red', context)),
-    enemy: new Player('Abc', new Tank(canvas.width/2 - 25, 0, 50, 'blue', context))
+    mySelf: new Player(new Tank(myName, canvas.width/2 - 25, canvas.height - 50, 50, 'red', context)),
+    enemy: null
 };
-function initTheGame(){
-    
-}
+
+socket.on('initGame', data=>{
+    playerNum = data.playerNumber;
+    myName = data.nickName;
+    players.mySelf.tank.nickName = data.nickName;
+    roomId = data.roomInfo.roomId;
+});
+
+socket.on('startTheGame_roomEnemy', nickName=>{
+    console.log('startTheGame_roomEnemy');
+    players.enemy = new Player(new Tank(nickName, canvas.width/2 - 25, 0, 50, 'red', context));
+    players.mySelf.tank.color = 'blue';
+})
+
+socket.on('startTheGame_newEnemy', data=>{
+    console.log('startTheGame_newEnemy');
+    players.enemy = new Player(new Tank(data.nickName, canvas.width/2 - 25, 0, 50, 'blue', context));
+    socket.emit('startTheGame_roomEnemy', {nickName: myName, socketId: data.socketId});
+});
+
 
 let firePicFrame = false;
 let picFrameTop = -(drawingArea.offsetTop * 2);
@@ -384,22 +416,57 @@ function playerMove(x, y, preX, preY){
     context.fillRect(preX, preY, 50, 50);
 }
 
+function enemyMove(x, y, preX, preY){
+    players.enemy.tank.x += x;
+    players.enemy.tank.y += y;
+    context.clearRect(preX, preY, 50, 50);
+    context.fillStyle = 'snow';
+    context.fillRect(preX, preY, 50, 50);
+}
+
 const prePlayerPos = {
     x: canvas.width/2 - 25,
     y: canvas.height - 50
 };
+const preEnemyPos = {
+    x: canvas.width/2 - 25,
+    y: 0
+}
+
 function moveUp(){
     playerMove(0, -10, prePlayerPos.x, prePlayerPos.y);
+    socket.emit('myMoveDir', {roomId: roomId, dir: playerDirs.up});
 }
 function moveLeft(){
     playerMove(-10, 0, prePlayerPos.x, prePlayerPos.y);
+    socket.emit('myMoveDir', {roomId: roomId, dir: playerDirs.left});
 }
 function moveRight(){
     playerMove(10, 0, prePlayerPos.x, prePlayerPos.y);
+    socket.emit('myMoveDir', {roomId: roomId, dir: playerDirs.right});
 }
 function moveDown(){
     playerMove(0, 10, prePlayerPos.x, prePlayerPos.y);
+    socket.emit('myMoveDir', {roomId: roomId, dir: playerDirs.down});
 }
+
+socket.on('enemyMove', dir=>{
+    switch(dir){
+        case playerDirs.up:
+            enemyMove(0, 10, preEnemyPos.x, preEnemyPos.y);
+            break;
+        case playerDirs.left:
+            enemyMove(-10, 0, preEnemyPos.x, preEnemyPos.y);
+            break;
+        case playerDirs.right:
+            enemyMove(10, 0, preEnemyPos.x, preEnemyPos.y);
+            break;
+        case playerDirs.down:
+            enemyMove(0, -10, preEnemyPos.x, preEnemyPos.y);
+            break;
+        default: break;
+    }
+});
 
 function drawPlayer(){
     switch(playerDir){
@@ -425,6 +492,17 @@ function drawPlayer(){
 
 drawPlayer();
 
+function drawEnemy(){
+    if(players.enemy !== null){
+        players.enemy.tank.draw();
+        preEnemyPos.x = players.enemy.tank.x;
+        preEnemyPos.y = players.enemy.tank.y;
+    }
+    requestAnimationFrame(drawEnemy);
+}
+
+drawEnemy();
+
 attackBtn.addEventListener('click', e=>{
     players.mySelf.tank.shoot(players.mySelf.tank.x, players.mySelf.tank.y - 20);
 }, false);
@@ -432,8 +510,8 @@ attackBtn.addEventListener('click', e=>{
 function shooting(){
     context.fillStyle = 'rgba(0,0,0,.05)';
     context.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    context.fillStyle = 'brown';
-    context.fillRect(0,0,canvas.width,canvas.height/2);
+    //context.fillStyle = 'brown';
+    //context.fillRect(0,0,canvas.width,canvas.height/2);
     //context.clearRect(0, 0, window.innerWidth, window.innerHeight);
     players.mySelf.tank.draw();
     players.mySelf.tank.bulletArr.forEach((bullet) => {

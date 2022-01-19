@@ -5,6 +5,7 @@ body {
 
 a {
   color: #00B7FF;
+  text-decoration: none;
 }
 
 .sidenav {
@@ -16,7 +17,7 @@ a {
 }
 
 .game-main-text{
-  margin-top: 20%;
+  margin-top: 10%;
   color: #fff;
   position: relative;
 }
@@ -27,17 +28,43 @@ a {
 .main {
   padding: 0px 10px;
 }
-
+.list{
+  height: 40vh;
+  width: auto;
+  overflow: auto;
+}
+#roomlsT{
+  font-size: large;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  text-align: center;
+}
 @media screen and (max-height: 450px) {
-  .sidenav {padding-top: 15px;}
+  .sidenav {padding-top: 10px;}
+  #cryingFace{
+    width: auto;
+    height: 50px;
+  }
+  .list{
+    height: 25vh;
+  }
 }
 @media screen and (max-width: 450px) {
   .player-form{
       margin-top: 5%;
   }
+  #cryingFace{
+    width: auto;
+    height: 50px;
+  }
+  .list{
+    height: 25vh;
+  }
 }
 @media screen and (min-width: 768px){
   .main{
+      padding-top: 5%;
       margin-left: 40%; 
   }
 
@@ -50,7 +77,7 @@ a {
   }
 
   .player-form{
-      margin-top: 80%;
+      margin-top: 10%;
   }
 
 }
@@ -58,3 +85,73 @@ a {
   background-color: #000 !important;
   color: #fff;
 }
+
+
+.list-item {
+  position: relative;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word
+}
+
+.list-row .list-item {
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -ms-flex-align: center;
+  align-items: center;
+  padding: .75rem .625rem
+}
+
+.block,
+.card {
+    background: rgb(41, 30, 17);
+    border-width: 0;
+    border-radius: .25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    margin-bottom: 1.5rem
+}
+
+.avatar {
+  position: relative;
+  line-height: 1;
+  border-radius: 500px;
+  white-space: nowrap;
+  font-weight: 700;
+  border-radius: 100%;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  border-radius: 500px;
+  box-shadow: 0 5px 10px 0 rgba(50, 50, 50, .15)
+}
+.roomName{
+  margin-left: 20px;
+  font-weight: bold;
+  font-size: medium;
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  cursor: pointer;
+  color: #fff;
+}
+.gd-warning {
+  color: #fff;
+  border: none;
+  background: #c4c4c4 linear-gradient(45deg, #e0feff, #a6cdff);
+  padding: 0!important;
+  cursor: pointer;
+}
+
+.w-48 {
+  width: 48px !important;
+  height: 48px !important;
+}
+

@@ -60,8 +60,16 @@
             <canvas id="picFrame" style="display: block;"></canvas>
         </div>
         <button id="paintDone" style="z-index: 2;">DONE</button>
-        
+        <script src="/socket.io/socket.io.js"></script>
         <script type="module" src="/javascripts/models/GamePlay.js"></script>
+        <script>
+            const roomInfoStr = '<%- roomInfo %>';
+            var initInfo = {
+                action: '<%- action %>',
+                nickName: '<%- nickName %>',
+                roomInfo: JSON.parse(roomInfoStr)
+            }
+        </script>
         <script type="module" src="/javascripts/handlers/GameScreen.js"></script>
     </body>
 </html>

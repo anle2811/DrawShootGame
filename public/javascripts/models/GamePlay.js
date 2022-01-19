@@ -97,7 +97,8 @@ class Bullet{
 }
 
 class Tank{
-    constructor(x, y, size, color, ctx){
+    constructor(nickName, x, y, size, color, ctx){
+        this.nickName = nickName;
         this.x = x;
         this.y = y;
         this.size = size;
@@ -108,6 +109,10 @@ class Tank{
     draw(){
         this.ctx.fillStyle = this.color;
         this.ctx.fillRect(this.x, this.y, this.size, this.size);
+        this.ctx.font = '20px Comic Sans MS';
+        this.ctx.fillStyle = 'white';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(this.nickName, this.x + this.size/2, this.y + this.size);
     }
     shoot(x, y){
         const angle = Math.atan2(y - this.y, x - this.x);
@@ -118,8 +123,7 @@ class Tank{
 }
 
 class Player{
-    constructor(nickName, tank){
-        this.nickName = nickName;
+    constructor(tank){
         this.tank = tank;
         this.lineArr = [];
     }

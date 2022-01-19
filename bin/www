@@ -23,11 +23,7 @@ const { Server } = require('socket.io');
 var server = http.createServer(app);
 const io = new Server(server);
 
-io.on('connection', socket=>{
-  socket.on('roomId', msg=>{
-    console.log('Room Id: '+ msg);
-  });
-});
+require('../GameServerHandler')(io);
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -95,3 +91,5 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+module.exports.io = io;

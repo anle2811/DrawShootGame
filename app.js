@@ -24,8 +24,14 @@ app.use(express.static(path.join(__dirname, 'node_modules')));
 app.use(express.static(path.join(__dirname, 'models')));
 
 app.use('/', welcomeRouter);
-app.use('/gamescreen', gameScreen);
+//app.use('/gamescreen', gameScreen);
 app.use('/users', usersRouter);
+
+app.locals.checkObj = {
+  showList: false,
+  nickname: "",
+  newRoom: false
+};
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

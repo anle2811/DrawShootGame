@@ -7,48 +7,127 @@
         <link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
         <link rel="stylesheet" href="/stylesheets/style.css">
         <script src="/js/bootstrap.min.js"></script>
+        <script src="/jquery/dist/jquery.min.js"></script>
     </head>
     <body>
         <div class="sidenav">
             <img src="/images/gamewelbg.jpeg" height="100%" width="auto" style="position: absolute; opacity: 0.3; left: 0; top: 0;">
             <div class="ps-5 pb-4 game-main-text">
-                <img src="/images/CryingFace.png">
+                <img id="cryingFace" src="/images/CryingFace.png">
                 <h2 class="my-3">NOOB GAME<br>Welcome!</h2>
                 <p>Xin chào con gà!</p>
              </div>
         </div>
 
         <div class="main">
-            <div class="col-md-6 col-sm-12">
+            <div class="mx-auto col-md-6 col-sm-12">
+                <% if (locals.checkObj.showList == true) { %>
+                    <p id="roomlsT">ROOM LIST</p>
+                    <div id="roomList" class="list list-row block">
+                    </div>
+                <% } %>
+                
                 <div class="player-form">
-                    <form id="joinGame" action="">
-                        <div class="form-group">
-                           <label>Room Id:</label>
-                           <input id="roomId" type="text" class="my-3 form-control" placeholder="Đặt là phải nhớ :D">
-                        </div>
-                        <div class="form-group">
-                           <label>Nickname:</label>
-                           <input id="nickName" type="text" class="my-3 form-control" placeholder="Tên gì cũng được :D">
-                        </div>
-                        <div style="text-align: center; width: 100%;">
-                            <button type="submit" class="btn btn-black">Chơi Thôi!</button>
-                        </div>
-                     </form>
+                    <% if (locals.checkObj.newRoom == true) { %>
+                        <form id="newRoom">
+                            <div class="form-group">
+                               <label>Nickname:</label>
+                               <input id="nickName" type="text" value="<%= locals.checkObj.nickname %>" class="my-3 form-control" placeholder="Tên gì cũng được :D">
+                            </div>
+                            <div style="text-align: center; width: 100%;">
+                                <button type="submit" class="btn btn-black">New Room</button>
+                            </div>
+                        </form>
+                    <% } else { %> 
+                        <form action="/roomlist" method="post">
+                            <div class="form-group">
+                            <label>Nickname:</label>
+                            <input name="nickname" type="text" value="<%= locals.checkObj.nickname %>" class="my-3 form-control" placeholder="Tên gì cũng được :D">
+                            </div>
+                            <div style="text-align: center; width: 100%;">
+                                <button type="submit" class="btn btn-black">Next!</button>
+                            </div>
+                        </form>
+                    <% } %> 
                 </div>
             </div>
         </div>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             const socket = io();
-            const joinGameForm = document.getElementById('joinGame');
-            const roomId = document.getElementById('roomId');
-            joinGameForm.addEventListener('submit', e=>{
+
+            const newRoomForm = document.getElementById('newRoom');
+            const nickName = document.getElementById('nickName');
+            if(newRoomForm){
+                newRoomForm.addEventListener('submit', e=>{
                 e.preventDefault();
-                if(roomId.value){
-                    socket.emit('roomId', roomId.value);
-                    roomId.value = '';
+                if(nickName.value){
+                    const roomin = {
+                        a: 'abc',
+                        b: 'hehe'
+                    };
+                    urlRequest('/gamescreen', {action: 'newRoom', nickName: nickName.value, roomInfo: JSON.stringify(roomin)}, 'POST');
                 }
             });
+            }
+
+            function urlRequest(path, dataObj, method){
+                const form = document.createElement('form');
+                form.method = method;
+                form.action = path;
+
+                for(const key in dataObj){
+                    if(dataObj.hasOwnProperty(key)){
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = key;
+                        hiddenInput.value = dataObj[key];
+                        form.appendChild(hiddenInput);
+                    }
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+           
+            socket.on('reloadRoomList', roomArr=>{
+                if($('#roomList')){
+                    $('#roomList').empty();
+                    if(roomArr.length > 0){
+                        for(let a = 0; a < roomArr.length; a++){
+                            var $listItem = $(
+                                "<div class='list-item'>" +
+                                    "<form class='d-flex rooms'>" +
+                                        "<input name='roomInfo' type='hidden' value='" + JSON.stringify(roomArr[a]) + "'>" +
+                                        "<button type='submit' class='w-48 avatar gd-warning'><img src='/images/joystick.png' width='70%' height='auto'></button>" +
+                                        "<button type='submit' class='roomName'>" + roomArr[a].roomName + "</button>" +
+                                    "</form>" +
+                                "</div>");
+                            $('#roomList').append($listItem);
+                        }
+                        $('.rooms').bind('submit', function(e){
+                            e.preventDefault();
+                            const jvalue = Array.from(e.target.querySelectorAll('input')).reduce((acc, input) =>({...acc, [input.name]: input.value}), {});
+                            const roomInfo = JSON.parse(jvalue.roomInfo);
+                            socket.emit('checkRoom', roomInfo);
+                        });
+                        
+                    }else{
+                        $('#roomList').append('<p style="text-align: center; font-size: medium; color: white;">Wait someone create a room!</p>');
+                    }    
+                }
+            });
+
+            socket.on('goToRoom', roomInfo=>{
+                console.log('GOGO');
+                urlRequest('/gamescreen', {action: 'joinRoom', nickName: nickName.value, roomInfo: JSON.stringify(roomInfo)}, 'POST');
+            })
+            socket.on('wrongRoomId', d=>{
+                console.log('wrongRoomId');
+            });
+            socket.on('roomOnPlaying', d=>{
+                console.log('roomOnPlaying');
+            });
+
         </script>
     </body>
 </html>
