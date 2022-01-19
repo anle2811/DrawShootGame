@@ -1,3 +1,5 @@
+const { data } = require("jquery");
+
 module.exports = function(io){
     io.on('connection', socket=>{
         socket.on('newRoom', nickName=>{
@@ -16,6 +18,12 @@ module.exports = function(io){
 
         socket.on('myMoveDir', data=>{
             socket.to(data.roomId).emit('enemyMove', data.dir);
+        });
+        socket.on('enemyHoldDir', data=>{
+            socket.to(data.roomId).emit('enemyHoldMove', data.dir);
+        });
+        socket.on('myShoot', roomId=>{
+            socket.to(roomId).emit('enemyShoot');
         });
     });
 };

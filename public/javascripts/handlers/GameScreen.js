@@ -78,6 +78,7 @@ doneBtn.addEventListener('click', e=>{
 }, false);
 function paintDone(){
     if(firePicFrame){
+        //socket.emit('firePicFrame', )
         picFrameTop = picFrame.offsetTop;
         firePicFrame = false;
     }else{
@@ -334,9 +335,11 @@ let playerDirs = {
     none: 'none'
 };
 let playerDir = playerDirs.none;
+let enemyDir = playerDirs.none;
 moveUpBtn.addEventListener('touchstart', e=>{
     e.preventDefault();
     timer = setTimeout(function(){
+        socket.emit('enemyHoldDir', {roomId: roomId, dir: playerDirs.up});
         playerDir = playerDirs.up;
         isHold = true;
     }, holdDur);
@@ -347,6 +350,7 @@ moveUpBtn.addEventListener('touchend', e=>{
 moveUpBtn1.addEventListener('touchstart', e=>{
     e.preventDefault();
     timer = setTimeout(function(){
+        socket.emit('enemyHoldDir', {roomId: roomId, dir: playerDirs.up});
         playerDir = playerDirs.up;
         isHold = true;
     }, holdDur);
@@ -358,6 +362,7 @@ moveUpBtn1.addEventListener('touchend', e=>{
 moveLeftBtn.addEventListener('touchstart', e=>{
     e.preventDefault();
     timer = setTimeout(function(){
+        socket.emit('enemyHoldDir', {roomId: roomId, dir: playerDirs.left});
         playerDir = playerDirs.left;
         isHold = true;
     }, holdDur);
@@ -369,6 +374,7 @@ moveLeftBtn.addEventListener('touchend', e=>{
 moveRightBtn.addEventListener('touchstart', e=>{
     e.preventDefault();
     timer = setTimeout(function(){
+        socket.emit('enemyHoldDir', {roomId: roomId, dir: playerDirs.right});
         playerDir = playerDirs.right;
         isHold = true;
     }, holdDur);
@@ -380,6 +386,7 @@ moveRightBtn.addEventListener('touchend', e=>{
 moveDownBtn.addEventListener('touchstart', e=>{
     e.preventDefault();
     timer = setTimeout(function(){
+        socket.emit('enemyHoldDir', {roomId: roomId, dir: playerDirs.down});
         playerDir = playerDirs.down;
         isHold = true;
     }, holdDur);
@@ -390,6 +397,7 @@ moveDownBtn.addEventListener('touchend', e=>{
 moveDownBtn1.addEventListener('touchstart', e=>{
     e.preventDefault();
     timer = setTimeout(function(){
+        socket.emit('enemyHoldDir', {roomId: roomId, dir: playerDirs.down});
         playerDir = playerDirs.down;
         isHold = true;
     }, holdDur);
@@ -400,6 +408,7 @@ moveDownBtn1.addEventListener('touchend', e=>{
 
 function endHoldDir(dir, moveDir){
     if(isHold){
+        socket.emit('enemyHoldDir', {roomId: roomId, dir: dir});
         playerDir = dir;
     }else{
         moveDir();
@@ -468,6 +477,10 @@ socket.on('enemyMove', dir=>{
     }
 });
 
+socket.on('enemyHoldMove', dir=>{
+    enemyDir = dir;
+});
+
 function drawPlayer(){
     switch(playerDir){
         case playerDirs.up:
@@ -494,6 +507,21 @@ drawPlayer();
 
 function drawEnemy(){
     if(players.enemy !== null){
+        switch(enemyDir){
+            case playerDirs.up:
+                enemyMove(0, 2, prePlayerPos.x, prePlayerPos.y);
+                break;
+            case playerDirs.left:
+                enemyMove(-2, 0, prePlayerPos.x, prePlayerPos.y);
+                break;
+            case playerDirs.right:
+                enemyMove(2, 0, prePlayerPos.x, prePlayerPos.y);
+                break;
+            case playerDirs.down:
+                enemyMove(0, -2, prePlayerPos.x, prePlayerPos.y);
+                break;    
+            default: break;
+        }
         players.enemy.tank.draw();
         preEnemyPos.x = players.enemy.tank.x;
         preEnemyPos.y = players.enemy.tank.y;
@@ -503,21 +531,37 @@ function drawEnemy(){
 
 drawEnemy();
 
+socket.on('enemyShoot', function(){
+    players.enemy.tank.shoot(players.enemy.tank.x, players.enemy.tank.y + 20);
+});
+
 attackBtn.addEventListener('click', e=>{
+    socket.emit('myShoot', roomId);
     players.mySelf.tank.shoot(players.mySelf.tank.x, players.mySelf.tank.y - 20);
 }, false);
 
 function shooting(){
     context.fillStyle = 'rgba(0,0,0,.05)';
     context.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    //context.fillStyle = 'brown';
-    //context.fillRect(0,0,canvas.width,canvas.height/2);
-    //context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
     players.mySelf.tank.draw();
     players.mySelf.tank.bulletArr.forEach((bullet) => {
         bullet.update();
     })
     requestAnimationFrame(shooting);
 }
-
 shooting();
+
+function enemyShooting(){
+    if(players.enemy !== null){
+        context.fillStyle = 'rgba(0,0,0,.05)';
+        context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+        
+        players.enemy.tank.draw();
+        players.enemy.tank.bulletArr.forEach((bullet) => {
+            bullet.update();
+        })
+    }
+    requestAnimationFrame(enemyShooting);
+}
+enemyShooting();
