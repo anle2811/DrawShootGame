@@ -129,4 +129,4 @@ class Player{
     }
 }
 
-export { Line, Player, Tank, PEN_PIXEL_SIZE };
+export { Line, LinePixel, Player, Tank, PEN_PIXEL_SIZE };

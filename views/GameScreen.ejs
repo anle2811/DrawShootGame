@@ -11,7 +11,7 @@
             <div id="mainDiv" style="height: 85%;">
                 <canvas id="mainLayer"></canvas>
             </div>
-            <div style="width: 100%; height: 15%;  padding: 5px 0px 5px 0px;">     
+            <div id="controlArea" style="width: 100%; height: 15%;  padding: 5px 0px 5px 0px;">     
                 <table style="height: 100%; width: 100%;">
                     <tr>
                         <td rowspan="2" style="text-align: center;">
@@ -58,6 +58,7 @@
         <div id="drawingArea" style="z-index: 1; display: block;">
             <canvas id="paintLayer" style="display: block;"></canvas>
             <canvas id="picFrame" style="display: block;"></canvas>
+            <canvas id="enemyPicFrame" style="display: block;"></canvas>
         </div>
         <button id="paintDone" style="z-index: 2;">DONE</button>
         <script src="/socket.io/socket.io.js"></script>

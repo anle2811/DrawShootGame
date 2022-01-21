@@ -25,6 +25,9 @@ module.exports = function(io){
         socket.on('myShoot', roomId=>{
             socket.to(roomId).emit('enemyShoot');
         });
+        socket.on('firePicFrame', data=>{
+            socket.to(data.roomId).emit('fireEnemyPicFrame', {lineArr: data.lineArr, picFrameBound: data.picFrameBound, picFrameOffsetX: data.picFrameOffsetX});
+        });
     });
 };
 

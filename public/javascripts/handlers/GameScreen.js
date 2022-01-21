@@ -1,5 +1,5 @@
 
-import { Line, Player, Tank, PEN_PIXEL_SIZE } from '../models/GamePlay.js';
+import { Line, LinePixel, Player, Tank, PEN_PIXEL_SIZE } from '../models/GamePlay.js';
 const socket = io();
 let playerNum = 0;
 let roomId = '';
@@ -23,6 +23,8 @@ canvas.height = mainDiv.clientHeight;
 context.fillStyle = 'snow';
 context.fillRect(0, 0, canvas.width, canvas.height);
 
+const controlArea = document.getElementById('controlArea');
+
 const drawingArea = document.getElementById('drawingArea');
 drawingArea.width = window.innerWidth;
 drawingArea.height = window.innerHeight/4;
@@ -41,6 +43,12 @@ const picFrameCtx = picFrame.getContext('2d');
 picFrame.width = 0;
 picFrame.height = 0;
 picFrame.style.position = 'absolute';
+
+const enemyPicFrame = document.getElementById('enemyPicFrame');
+const enemyPicFrameCtx = enemyPicFrame.getContext('2d');
+enemyPicFrame.width = 0;
+enemyPicFrame.height = 0;
+enemyPicFrame.style.position = 'absolute';
 
 const doneBtn = document.getElementById('paintDone');
 doneBtn.style.top = (window.innerHeight/4 + paintLayer.height + paintLayer.height/2)+'px';
@@ -73,12 +81,19 @@ socket.on('startTheGame_newEnemy', data=>{
 
 let firePicFrame = false;
 let picFrameTop = -(drawingArea.offsetTop * 2);
+let enemyPicFrameTop = canvas.height;
+const picFrameBound = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0
+};
 doneBtn.addEventListener('click', e=>{
     paintDone();
 }, false);
 function paintDone(){
     if(firePicFrame){
-        //socket.emit('firePicFrame', )
+        socket.emit('firePicFrame', {roomId: roomId, lineArr: players.mySelf.lineArr, picFrameBound: picFrameBound, picFrameOffsetX: picFrame.offsetLeft});
         picFrameTop = picFrame.offsetTop;
         firePicFrame = false;
     }else{
@@ -90,6 +105,23 @@ function paintDone(){
     }
 }
 
+socket.on('fireEnemyPicFrame', data=>{
+    drawEnemyPicFrame(data.picFrameBound);
+    for(let a = 0; a < data.lineArr.length; a++){
+        const distanceA = enemyPicFrame.height - data.lineArr[a].y;
+        players.enemy.lineArr.push(new Line(data.lineArr[a].x, distanceA, enemyPicFrameCtx));
+        players.enemy.lineArr[a].selfDraw();
+        for(let b = 0; b < data.lineArr[a].pixelArr.length; b++){
+            const distanceB = enemyPicFrame.height - data.lineArr[a].pixelArr[b].y;
+            players.enemy.lineArr[a].pixelArr.push(new LinePixel(data.lineArr[a].pixelArr[b].x, distanceB, PEN_PIXEL_SIZE, enemyPicFrameCtx));
+            players.enemy.lineArr[a].pixelArr[b].draw();
+        }
+    }
+    enemyPicFrame.style.left = data.picFrameOffsetX + 'px';
+    enemyPicFrame.style.top = -(controlArea.offsetHeight) + 'px';
+    enemyPicFrameTop =  -(controlArea.offsetHeight);
+});
+
 function firePic(){
     if(picFrameTop > drawingArea.offsetTop * -1){
         picFrame.style.border = 'none';
@@ -99,6 +131,15 @@ function firePic(){
     requestAnimationFrame(firePic);
 }
 firePic();
+///////////////
+function fireEnemyPic(){
+    if(enemyPicFrameTop < (canvas.height - drawingArea.offsetTop)){
+        enemyPicFrame.style.top = enemyPicFrameTop + 'px';
+        enemyPicFrameTop += 2;
+    }
+    requestAnimationFrame(fireEnemyPic);
+}
+fireEnemyPic();
 
 let picFrameDragable = false;
 let picFrameXTouch = 0;
@@ -262,17 +303,37 @@ function repaintToPicFrame(){
     }
 }
 
+/*function repaintPicFrame(){
+    picFrameCtx.clearRect(0, 0, picFrame.width, picFrame.height);
+    for(let a = 0; a < players.mySelf.lineArr.length; a++){
+        players.mySelf.lineArr[a].selfDraw();
+        for(let b = 0; b < players.mySelf.lineArr[a].pixelArr.length; b++){
+            players.mySelf.lineArr[a].pixelArr[b].draw();
+        }
+    }
+}*/
+
 function drawPicFrame(){
     const x = paintLayerFindMinX() - PEN_PIXEL_SIZE;
     const y = paintLayerFindMinY() - PEN_PIXEL_SIZE;
     const width = paintLayerFindMaxX() - x + PEN_PIXEL_SIZE;
     const height = paintLayerFindMaxY() - y + PEN_PIXEL_SIZE;
-
+    picFrameBound.x = x;
+    picFrameBound.y = y;
+    picFrameBound.width = width;
+    picFrameBound.height = height;
     picFrame.width = width;
     picFrame.height = height;
     picFrame.style.border = 'thin solid yellow'
     picFrame.style.top = y + 'px';
     picFrame.style.left = x + 'px';
+}
+
+function drawEnemyPicFrame(picFrameBound){
+    enemyPicFrame.width = picFrameBound.width;
+    enemyPicFrame.height = picFrameBound.height;
+    enemyPicFrame.style.top = picFrameBound.y + 'px';
+    enemyPicFrame.style.left = picFrameBound.x + 'px';
 }
 
 ///Not using
