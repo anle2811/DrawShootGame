@@ -22,6 +22,9 @@ canvas.width = mainDiv.clientWidth;
 canvas.height = mainDiv.clientHeight;
 context.fillStyle = 'snow';
 context.fillRect(0, 0, canvas.width, canvas.height);
+const TANK_SIZE = 50;
+const TANK_POS_X = canvas.width/2 - TANK_SIZE/2;
+const TANK_POS_Y = canvas.height - TANK_SIZE;
 
 const controlArea = document.getElementById('controlArea');
 
@@ -54,8 +57,32 @@ const doneBtn = document.getElementById('paintDone');
 doneBtn.style.top = (window.innerHeight/4 + paintLayer.height + paintLayer.height/2)+'px';
 doneBtn.style.position = 'absolute';
 
+const countDownGameStart = document.getElementById('countDownGameStart');
+const txtStartTimer = document.getElementById('txtStartTimer');
+let startAfter = 5;
+txtStartTimer.innerHTML = startAfter + '';
+
+function startGameCD(){
+    countDownGameStart.style.display = 'flex';
+    players.mySelf.lineArr = [];
+    players.mySelf.tank.x = TANK_POS_X;
+    players.mySelf.tank.y = TANK_POS_Y;
+    players.mySelf.tank.bulletArr = [];
+    picFrameCtx.clearRect(0, 0, picFrame.width, picFrame.height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    const interval = setInterval(()=>{
+        if(startAfter > 0){
+            startAfter -= 1;
+            txtStartTimer.innerHTML = startAfter + '';
+        }else{
+            clearInterval(interval);
+            countDownGameStart.style.display = 'none';
+        }
+    }, 1000)
+}
+
 const players = {
-    mySelf: new Player(new Tank(myName, canvas.width/2 - 25, canvas.height - 50, 50, 'red', context)),
+    mySelf: new Player(new Tank(myName, TANK_POS_X, TANK_POS_Y, TANK_SIZE, 'red', context)),
     enemy: null
 };
 
@@ -68,14 +95,16 @@ socket.on('initGame', data=>{
 
 socket.on('startTheGame_roomEnemy', nickName=>{
     console.log('startTheGame_roomEnemy');
-    players.enemy = new Player(new Tank(nickName, canvas.width/2 - 25, 0, 50, 'red', context));
+    players.enemy = new Player(new Tank(nickName, TANK_POS_X, 0, 50, 'red', context));
     players.mySelf.tank.color = 'blue';
+    startGameCD();
 })
 
 socket.on('startTheGame_newEnemy', data=>{
     console.log('startTheGame_newEnemy');
-    players.enemy = new Player(new Tank(data.nickName, canvas.width/2 - 25, 0, 50, 'blue', context));
+    players.enemy = new Player(new Tank(data.nickName, TANK_POS_X, 0, 50, 'blue', context));
     socket.emit('startTheGame_roomEnemy', {nickName: myName, socketId: data.socketId});
+    startGameCD();
 });
 
 
@@ -88,6 +117,7 @@ const picFrameBound = {
     width: 0,
     height: 0
 };
+let stopMovePic = false;
 doneBtn.addEventListener('click', e=>{
     paintDone();
 }, false);
@@ -104,9 +134,10 @@ function paintDone(){
         firePicFrame = true;
     }
 }
-
+let enemyPicFrameinCanvasY = 0;
 socket.on('fireEnemyPicFrame', data=>{
     drawEnemyPicFrame(data.picFrameBound);
+    enemyPicFrameinCanvasY = (drawingArea.offsetTop - controlArea.offsetHeight) + enemyPicFrame.height;
     for(let a = 0; a < data.lineArr.length; a++){
         const distanceA = enemyPicFrame.height - data.lineArr[a].y;
         players.enemy.lineArr.push(new Line(data.lineArr[a].x, distanceA, enemyPicFrameCtx));
@@ -126,16 +157,20 @@ function firePic(){
     if(picFrameTop > drawingArea.offsetTop * -1){
         picFrame.style.border = 'none';
         picFrame.style.top = picFrameTop + 'px';
-        picFrameTop -= 2;
+        picFrameTop -= 0.5;
     }
     requestAnimationFrame(firePic);
 }
 firePic();
 ///////////////
+
 function fireEnemyPic(){
-    if(enemyPicFrameTop < (canvas.height - drawingArea.offsetTop)){
-        enemyPicFrame.style.top = enemyPicFrameTop + 'px';
-        enemyPicFrameTop += 2;
+    if(stopMovePic === false){
+        if(enemyPicFrameTop < (canvas.height - drawingArea.offsetTop)){
+            enemyPicFrame.style.top = enemyPicFrameTop + 'px';
+            enemyPicFrameTop += 0.5;
+            enemyPicFrameinCanvasY += 0.5;
+        }
     }
     requestAnimationFrame(fireEnemyPic);
 }
@@ -606,8 +641,38 @@ function shooting(){
     context.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
     players.mySelf.tank.draw();
-    players.mySelf.tank.bulletArr.forEach((bullet) => {
+    players.mySelf.tank.bulletArr.forEach((bullet, index) => {
         bullet.update();
+        if(enemyPicFrame.height !== 0 && enemyPicFrame.width !== 0){
+            if(bullet.x >= enemyPicFrame.offsetLeft && bullet.x <= (enemyPicFrame.offsetLeft + enemyPicFrame.width)){
+                stopMovePic = true;
+                for(let a = 0; a < players.enemy.lineArr.length; a++){
+                    if(players.enemy.lineArr[a].alive){                 
+                        const pixelPosY = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].y);
+                        const pixelPosX = players.enemy.lineArr[a].x + enemyPicFrame.offsetLeft;
+                        if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
+                            if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
+                                enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].x, players.enemy.lineArr[a].y, 8, 8);
+                                players.enemy.lineArr[a].alive = false;
+                                players.mySelf.tank.bulletArr.splice(index, 1);
+                            }
+                        }
+                    }
+                    for(let b = 0; b < players.enemy.lineArr[a].pixelArr.length; b++){
+                        const pixelPosY = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].pixelArr[b].y);
+                        const pixelPosX = players.enemy.lineArr[a].pixelArr[b].x + enemyPicFrame.offsetLeft;
+                        if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
+                            if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
+                                enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].pixelArr[b].x, players.enemy.lineArr[a].pixelArr[b].y, 8, 8);
+                                players.enemy.lineArr[a].pixelArr.splice(b, 1);
+                                players.mySelf.tank.bulletArr.splice(index, 1);
+                            }
+                        }
+                    }
+                }
+                stopMovePic = false;
+            }
+        }
     })
     requestAnimationFrame(shooting);
 }

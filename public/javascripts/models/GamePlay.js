@@ -26,6 +26,7 @@ class Line{
     constructor(x, y, ctx){
         this.x = x;
         this.y = y;
+        this.alive = true;
         this.pixelSize = PEN_PIXEL_SIZE;
         this.size = LINE_SIZE;
         this.pixelArr = [];

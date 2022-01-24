@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="/stylesheets/game-screen.css" type="text/css">
     </head>
     <body>
-        <div style="z-index: 0; height: 100%;">
+        <div style="z-index: 0; height: 100%; width: 100%; position: absolute;">
             <div id="mainDiv" style="height: 85%;">
                 <canvas id="mainLayer"></canvas>
             </div>
@@ -61,6 +61,12 @@
             <canvas id="enemyPicFrame" style="display: block;"></canvas>
         </div>
         <button id="paintDone" style="z-index: 2;">DONE</button>
+        <div id="countDownGameStart" style="z-index: 3; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.5); position: absolute; display: none; justify-content: center; align-items: center;">
+            <ul style="list-style-type: none; color: white; text-align: center;">
+                <li style="margin-bottom: 30px"><h2>GAME WILL START AFTER</h2></li>
+                <li><h2 id="txtStartTimer">5</h2></li>
+            </ul>
+        </div>
         <script src="/socket.io/socket.io.js"></script>
         <script type="module" src="/javascripts/models/GamePlay.js"></script>
         <script>
