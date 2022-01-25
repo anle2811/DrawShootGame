@@ -4,6 +4,9 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+  req.app.locals.checkObj.showList = false;
+  req.app.locals.checkObj.nickname = '';
+  req.app.locals.checkObj.newRoom = false;
   res.render('welcome', req.app.locals.checkObj);
 });
 

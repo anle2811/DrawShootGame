@@ -106,6 +106,8 @@ class Tank{
         this.color = color;
         this.bulletArr = [];
         this.ctx = ctx;
+
+        this.heightHPBar = this.size + 15;
     }
     draw(){
         this.ctx.fillStyle = this.color;
@@ -114,6 +116,20 @@ class Tank{
         this.ctx.fillStyle = 'white';
         this.ctx.textAlign = 'center';
         this.ctx.fillText(this.nickName, this.x + this.size/2, this.y + this.size);
+
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = 'red';
+        this.ctx.lineWidth = 1;
+        this.ctx.rect(this.x + this.size + 5, this.y - 15, 10, this.size + 15);
+        this.ctx.closePath();
+        this.ctx.stroke();
+
+        this.ctx.clearRect(this.x + this.size + 5, this.y - 15, 10, this.size + 15);
+        this.ctx.fillStyle = 'yellow';
+        this.ctx.fillRect(this.x + this.size + 5, this.y + this.size - this.heightHPBar, 10, this.heightHPBar);
+    }
+    updateHPBar(height){
+        this.heightHPBar = height;
     }
     shoot(x, y){
         const angle = Math.atan2(y - this.y, x - this.x);

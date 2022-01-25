@@ -56,6 +56,13 @@
         <script>
             const socket = io();
 
+            const showRoomList = '<%- locals.checkObj.showList %>';
+            console.log('Show Room List: ' + showRoomList);
+            if(showRoomList === 'true'){
+                console.log('GET ROOM LIST');
+                socket.emit('getRoomList');
+            }
+
             const newRoomForm = document.getElementById('newRoom');
             const nickName = document.getElementById('nickName');
             if(newRoomForm){

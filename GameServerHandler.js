@@ -1,10 +1,13 @@
-const { data } = require("jquery");
+let roomArr = [];
 
 module.exports = function(io){
     io.on('connection', socket=>{
         socket.on('newRoom', nickName=>{
             console.log('Nick Name: '+ nickName);
             newRoom(socket, nickName);
+        });
+        socket.on('getRoomList', ()=>{
+            socket.emit('reloadRoomList', roomArr);
         });
         socket.on('checkRoom', roomInfo=>{
             checkRoom(io, socket, roomInfo);
@@ -28,10 +31,12 @@ module.exports = function(io){
         socket.on('firePicFrame', data=>{
             socket.to(data.roomId).emit('fireEnemyPicFrame', {lineArr: data.lineArr, picFrameBound: data.picFrameBound, picFrameOffsetX: data.picFrameOffsetX});
         });
+        socket.on('bulletOnPic', data=>{
+            socket.to(data.roomId).emit('picOnAttack', {a: data.a, b: data.b});
+        });
     });
 };
 
-let roomArr = [];
 function newRoom(socket, nickName){
     const roomId = makeid(5);
     const roomInfo = {

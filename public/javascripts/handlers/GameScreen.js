@@ -20,11 +20,14 @@ const context = canvas.getContext('2d');
 const mainDiv = document.getElementById('mainDiv');
 canvas.width = mainDiv.clientWidth;
 canvas.height = mainDiv.clientHeight;
-context.fillStyle = 'snow';
+context.fillStyle = 'black';
 context.fillRect(0, 0, canvas.width, canvas.height);
 const TANK_SIZE = 50;
 const TANK_POS_X = canvas.width/2 - TANK_SIZE/2;
 const TANK_POS_Y = canvas.height - TANK_SIZE;
+const BULLET_SIZE = 10;
+
+let MY_TANK_HP = 5;
 
 const controlArea = document.getElementById('controlArea');
 
@@ -164,12 +167,60 @@ function firePic(){
 firePic();
 ///////////////
 
+function checkPicTankImpact(){
+    for(let a = 0; a < players.enemy.lineArr.length; a++){
+        if(players.enemy.lineArr[a].alive){
+            const xPixelInCanvas = players.enemy.lineArr[a].x + enemyPicFrame.offsetLeft;
+            const yPixelInCanvas = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].y) + PEN_PIXEL_SIZE;
+            if(yPixelInCanvas >= players.mySelf.tank.y){
+                if(xPixelInCanvas >= players.mySelf.tank.x && xPixelInCanvas <= players.mySelf.tank.x + TANK_SIZE){
+                    console.log('PIC IMPACT!');
+                    return true;
+                }
+            }
+        }
+        for(let b = 0; b < players.enemy.lineArr[a].pixelArr.length; b++){
+            const xPixelInCanvas = players.enemy.lineArr[a].pixelArr[b].x + enemyPicFrame.offsetLeft;
+            const yPixelInCanvas = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].pixelArr[b].y) + PEN_PIXEL_SIZE;
+            if(yPixelInCanvas >= players.mySelf.tank.y){
+                if(xPixelInCanvas >= players.mySelf.tank.x && xPixelInCanvas <= players.mySelf.tank.x + TANK_SIZE){
+                    console.log('PIC IMPACT!');
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+function updateMyTankHPBar(){
+    const hpBarHeight = ((TANK_SIZE + 15)/5) * MY_TANK_HP;
+    players.mySelf.tank.updateHPBar(hpBarHeight);
+}
+
+function removeEnemyPicFrame(){
+    players.enemy.lineArr = [];
+    enemyPicFrameCtx.clearRect(0,0,enemyPicFrame.width, enemyPicFrame.height);
+    enemyPicFrame.style.left = '0px';
+    enemyPicFrame.style.top = '0px';
+    enemyPicFrame.width = 0;
+    enemyPicFrame.height = 0;
+    stopMovePic = true;
+}
+
 function fireEnemyPic(){
     if(stopMovePic === false){
         if(enemyPicFrameTop < (canvas.height - drawingArea.offsetTop)){
             enemyPicFrame.style.top = enemyPicFrameTop + 'px';
             enemyPicFrameTop += 0.5;
             enemyPicFrameinCanvasY += 0.5;
+            if(enemyPicFrameinCanvasY >= players.mySelf.tank.y && 
+            (players.mySelf.tank.x >= enemyPicFrame.offsetLeft && players.mySelf.tank.x <= enemyPicFrame.offsetLeft + enemyPicFrame.width)){
+                if(checkPicTankImpact){
+                    MY_TANK_HP -= 1;
+                    removeEnemyPicFrame();
+                    updateMyTankHPBar();
+                }
+            }
         }
     }
     requestAnimationFrame(fireEnemyPic);
@@ -516,9 +567,10 @@ function endHoldDir(dir, moveDir){
 function playerMove(x, y, preX, preY){
     players.mySelf.tank.x += x;
     players.mySelf.tank.y += y;
-    context.clearRect(preX, preY, 50, 50);
+    context.clearRect(preX, preY, TANK_SIZE, TANK_SIZE);
     context.fillStyle = 'snow';
-    context.fillRect(preX, preY, 50, 50);
+    context.fillRect(preX, preY, TANK_SIZE, TANK_SIZE);
+    context.clearRect(preX + TANK_SIZE + 5 - 1, preY - 15 - 1, 12, TANK_SIZE + 17);
 }
 
 function enemyMove(x, y, preX, preY){
@@ -636,42 +688,57 @@ attackBtn.addEventListener('click', e=>{
     players.mySelf.tank.shoot(players.mySelf.tank.x, players.mySelf.tank.y - 20);
 }, false);
 
+socket.on('picOnAttack', index=>{
+    if(index.b !== null){
+        picFrameCtx.clearRect(players.mySelf.lineArr[index.a].pixelArr[index.b].x - PEN_PIXEL_SIZE, players.mySelf.lineArr[index.a].pixelArr[index.b].y - PEN_PIXEL_SIZE, BULLET_SIZE, BULLET_SIZE);
+        players.mySelf.lineArr[index.a].pixelArr.splice(index.b, 1);
+    }else{
+        picFrameCtx.clearRect(players.mySelf.lineArr[index.a].x - PEN_PIXEL_SIZE, players.mySelf.lineArr[index.a].y - PEN_PIXEL_SIZE, BULLET_SIZE, BULLET_SIZE);
+    }
+});
+
 function shooting(){
     context.fillStyle = 'rgba(0,0,0,.05)';
     context.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
     players.mySelf.tank.draw();
     players.mySelf.tank.bulletArr.forEach((bullet, index) => {
-        bullet.update();
-        if(enemyPicFrame.height !== 0 && enemyPicFrame.width !== 0){
-            if(bullet.x >= enemyPicFrame.offsetLeft && bullet.x <= (enemyPicFrame.offsetLeft + enemyPicFrame.width)){
-                stopMovePic = true;
-                for(let a = 0; a < players.enemy.lineArr.length; a++){
-                    if(players.enemy.lineArr[a].alive){                 
-                        const pixelPosY = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].y);
-                        const pixelPosX = players.enemy.lineArr[a].x + enemyPicFrame.offsetLeft;
-                        if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
-                            if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
-                                enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].x, players.enemy.lineArr[a].y, 8, 8);
-                                players.enemy.lineArr[a].alive = false;
-                                players.mySelf.tank.bulletArr.splice(index, 1);
+        if(bullet.y > 0){
+            bullet.update();
+            if(enemyPicFrame.height !== 0 && enemyPicFrame.width !== 0){
+                if(bullet.x >= enemyPicFrame.offsetLeft && bullet.x <= (enemyPicFrame.offsetLeft + enemyPicFrame.width)){
+                    stopMovePic = true;
+                    for(let a = 0; a < players.enemy.lineArr.length; a++){
+                        if(players.enemy.lineArr[a].alive){                 
+                            const pixelPosY = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].y);
+                            const pixelPosX = players.enemy.lineArr[a].x + enemyPicFrame.offsetLeft;
+                            if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
+                                if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
+                                    socket.emit('bulletOnPic', {a: a, b: null, roomId: roomId});
+                                    enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].x - PEN_PIXEL_SIZE, players.enemy.lineArr[a].y - PEN_PIXEL_SIZE, BULLET_SIZE, BULLET_SIZE);
+                                    players.enemy.lineArr[a].alive = false;
+                                    players.mySelf.tank.bulletArr.splice(index, 1);
+                                }
+                            }
+                        }
+                        for(let b = 0; b < players.enemy.lineArr[a].pixelArr.length; b++){
+                            const pixelPosY = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].pixelArr[b].y);
+                            const pixelPosX = players.enemy.lineArr[a].pixelArr[b].x + enemyPicFrame.offsetLeft;
+                            if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
+                                if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
+                                    socket.emit('bulletOnPic', {a: a, b: b, roomId: roomId});
+                                    enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].pixelArr[b].x - PEN_PIXEL_SIZE, players.enemy.lineArr[a].pixelArr[b].y - PEN_PIXEL_SIZE, BULLET_SIZE, BULLET_SIZE);
+                                    players.enemy.lineArr[a].pixelArr.splice(b, 1);
+                                    players.mySelf.tank.bulletArr.splice(index, 1);
+                                }
                             }
                         }
                     }
-                    for(let b = 0; b < players.enemy.lineArr[a].pixelArr.length; b++){
-                        const pixelPosY = enemyPicFrameinCanvasY - (enemyPicFrame.height - players.enemy.lineArr[a].pixelArr[b].y);
-                        const pixelPosX = players.enemy.lineArr[a].pixelArr[b].x + enemyPicFrame.offsetLeft;
-                        if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
-                            if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
-                                enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].pixelArr[b].x, players.enemy.lineArr[a].pixelArr[b].y, 8, 8);
-                                players.enemy.lineArr[a].pixelArr.splice(b, 1);
-                                players.mySelf.tank.bulletArr.splice(index, 1);
-                            }
-                        }
-                    }
+                    stopMovePic = false;
                 }
-                stopMovePic = false;
             }
+        }else{
+            players.mySelf.tank.bulletArr.splice(index, 1);
         }
     })
     requestAnimationFrame(shooting);
