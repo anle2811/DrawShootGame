@@ -99,6 +99,7 @@ socket.on('initGame', data=>{
 socket.on('startTheGame_roomEnemy', nickName=>{
     console.log('startTheGame_roomEnemy');
     players.enemy = new Player(new Tank(nickName, TANK_POS_X, 0, 50, 'red', context));
+    players.enemy.tank.yHPBar = 0;
     players.mySelf.tank.color = 'blue';
     startGameCD();
 })
@@ -106,6 +107,7 @@ socket.on('startTheGame_roomEnemy', nickName=>{
 socket.on('startTheGame_newEnemy', data=>{
     console.log('startTheGame_newEnemy');
     players.enemy = new Player(new Tank(data.nickName, TANK_POS_X, 0, 50, 'blue', context));
+    players.enemy.tank.yHPBar = 0;
     socket.emit('startTheGame_roomEnemy', {nickName: myName, socketId: data.socketId});
     startGameCD();
 });
@@ -139,6 +141,7 @@ function paintDone(){
 }
 let enemyPicFrameinCanvasY = 0;
 socket.on('fireEnemyPicFrame', data=>{
+    stopMovePic = false;
     drawEnemyPicFrame(data.picFrameBound);
     enemyPicFrameinCanvasY = (drawingArea.offsetTop - controlArea.offsetHeight) + enemyPicFrame.height;
     for(let a = 0; a < data.lineArr.length; a++){
@@ -194,8 +197,13 @@ function checkPicTankImpact(){
 }
 function updateMyTankHPBar(){
     const hpBarHeight = ((TANK_SIZE + 15)/5) * MY_TANK_HP;
+    socket.emit('myHPUpdate', {hpBarHeight: hpBarHeight, roomId: roomId});
     players.mySelf.tank.updateHPBar(hpBarHeight);
 }
+socket.on('enemyHPUpdate', hpBarHeight=>{
+    players.enemy.tank.updateHPBar(hpBarHeight * -1);
+    removeMyPicFrame();
+});
 
 function removeEnemyPicFrame(){
     players.enemy.lineArr = [];
@@ -207,6 +215,16 @@ function removeEnemyPicFrame(){
     stopMovePic = true;
 }
 
+function removeMyPicFrame(){
+    picFrameTop = -(drawingArea.offsetTop * 2);
+    players.mySelf.lineArr = [];
+    picFrameCtx.clearRect(0,0,picFrame.width, picFrame.height);
+    picFrame.style.left = '0px';
+    picFrame.style.top = '0px';
+    picFrame.width = 0;
+    picFrame.height = 0;
+}
+
 function fireEnemyPic(){
     if(stopMovePic === false){
         if(enemyPicFrameTop < (canvas.height - drawingArea.offsetTop)){
@@ -214,8 +232,8 @@ function fireEnemyPic(){
             enemyPicFrameTop += 0.5;
             enemyPicFrameinCanvasY += 0.5;
             if(enemyPicFrameinCanvasY >= players.mySelf.tank.y && 
-            (players.mySelf.tank.x >= enemyPicFrame.offsetLeft && players.mySelf.tank.x <= enemyPicFrame.offsetLeft + enemyPicFrame.width)){
-                if(checkPicTankImpact){
+            (players.mySelf.tank.x + TANK_SIZE >= enemyPicFrame.offsetLeft && players.mySelf.tank.x <= enemyPicFrame.offsetLeft + enemyPicFrame.width)){
+                if(checkPicTankImpact()===true){
                     MY_TANK_HP -= 1;
                     removeEnemyPicFrame();
                     updateMyTankHPBar();

@@ -34,6 +34,9 @@ module.exports = function(io){
         socket.on('bulletOnPic', data=>{
             socket.to(data.roomId).emit('picOnAttack', {a: data.a, b: data.b});
         });
+        socket.on('myHPUpdate', data=>{
+            socket.to(data.roomId).emit('enemyHPUpdate', data.hpBarHeight);
+        });
     });
 };
 
