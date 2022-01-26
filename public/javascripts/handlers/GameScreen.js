@@ -707,6 +707,7 @@ attackBtn.addEventListener('click', e=>{
 }, false);
 
 socket.on('picOnAttack', index=>{
+    players.enemy.tank.bulletArr.splice(index.bulletIdx, 1);
     if(index.b !== null){
         picFrameCtx.clearRect(players.mySelf.lineArr[index.a].pixelArr[index.b].x - PEN_PIXEL_SIZE, players.mySelf.lineArr[index.a].pixelArr[index.b].y - PEN_PIXEL_SIZE, BULLET_SIZE, BULLET_SIZE);
         players.mySelf.lineArr[index.a].pixelArr.splice(index.b, 1);
@@ -732,7 +733,7 @@ function shooting(){
                             const pixelPosX = players.enemy.lineArr[a].x + enemyPicFrame.offsetLeft;
                             if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
                                 if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
-                                    socket.emit('bulletOnPic', {a: a, b: null, roomId: roomId});
+                                    socket.emit('bulletOnPic', {a: a, b: null, bulletIdx: index, roomId: roomId});
                                     enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].x - PEN_PIXEL_SIZE, players.enemy.lineArr[a].y - PEN_PIXEL_SIZE, BULLET_SIZE, BULLET_SIZE);
                                     players.enemy.lineArr[a].alive = false;
                                     players.mySelf.tank.bulletArr.splice(index, 1);
@@ -744,7 +745,7 @@ function shooting(){
                             const pixelPosX = players.enemy.lineArr[a].pixelArr[b].x + enemyPicFrame.offsetLeft;
                             if(bullet.y >= pixelPosY - PEN_PIXEL_SIZE && bullet.y <= pixelPosY + PEN_PIXEL_SIZE){
                                 if(bullet.x >= pixelPosX - PEN_PIXEL_SIZE && bullet.x <= pixelPosX + PEN_PIXEL_SIZE){
-                                    socket.emit('bulletOnPic', {a: a, b: b, roomId: roomId});
+                                    socket.emit('bulletOnPic', {a: a, b: b, bulletIdx: index, roomId: roomId});
                                     enemyPicFrameCtx.clearRect(players.enemy.lineArr[a].pixelArr[b].x - PEN_PIXEL_SIZE, players.enemy.lineArr[a].pixelArr[b].y - PEN_PIXEL_SIZE, BULLET_SIZE, BULLET_SIZE);
                                     players.enemy.lineArr[a].pixelArr.splice(b, 1);
                                     players.mySelf.tank.bulletArr.splice(index, 1);
@@ -769,9 +770,12 @@ function enemyShooting(){
         context.fillRect(0, 0, window.innerWidth, window.innerHeight);
         
         players.enemy.tank.draw();
-        players.enemy.tank.bulletArr.forEach((bullet) => {
+        players.enemy.tank.bulletArr.forEach((bullet, idx) => {
             bullet.update();
-        })
+            if(bullet.y > canvas.height){
+                players.enemy.tank.bulletArr.splice(idx, 1);
+            }
+        });
     }
     requestAnimationFrame(enemyShooting);
 }

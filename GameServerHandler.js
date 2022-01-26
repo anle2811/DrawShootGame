@@ -32,7 +32,7 @@ module.exports = function(io){
             socket.to(data.roomId).emit('fireEnemyPicFrame', {lineArr: data.lineArr, picFrameBound: data.picFrameBound, picFrameOffsetX: data.picFrameOffsetX});
         });
         socket.on('bulletOnPic', data=>{
-            socket.to(data.roomId).emit('picOnAttack', {a: data.a, b: data.b});
+            socket.to(data.roomId).emit('picOnAttack', {a: data.a, b: data.b, bulletIdx: data.bulletIdx});
         });
         socket.on('myHPUpdate', data=>{
             socket.to(data.roomId).emit('enemyHPUpdate', data.hpBarHeight);
